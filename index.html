@@ -29,7 +29,17 @@
     <button onclick="uploadData()" style="background:#27ae60; color:white; border:none; cursor:pointer;">上傳紀錄到雲端</button>
 
     <hr>
-    <h3>📋 全域同步清單</h3>
+    <h3>📋水果清單</h3>
+    <div class="filter-section" style="background: #f8f9fa; padding: 15px; border-radius: 8px; margin: 20px 0; border: 1px solid #e9ecef; display: flex; gap: 15px;">
+    <div class="filter-group" style="flex: 1;">
+        <label style="font-size: 13px; font-weight: bold; color: #666; display: block; margin-bottom: 5px;">按水果過濾</label>
+        <select id="filterFruit" onchange="renderTable()" style="margin-top: 0; padding: 8px; font-size: 14px; width: 100%; border-radius: 6px;"></select>
+    </div>
+    <div class="filter-group" style="flex: 1;">
+        <label style="font-size: 13px; font-weight: bold; color: #666; display: block; margin-bottom: 5px;">按變異過濾</label>
+        <select id="filterVariant" onchange="renderTable()" style="margin-top: 0; padding: 8px; font-size: 14px; width: 100%; border-radius: 6px;"></select>
+    </div>
+</div>
     <table id="cloudTable">
         <thead><tr><th>使用者</th><th>水果</th><th>變異狀態</th></tr></thead>
         <tbody id="cloudBody"></tbody>
@@ -47,6 +57,18 @@
     document.getElementById('userTitle').innerText = "你好，" + currentUser;
 
     function init() {
+        // 在 init() 裡面加入這段
+const ff = document.getElementById('filterFruit');
+ff.add(new Option("顯示全部水果", "ALL"));
+for (let f in fruits) {
+    ff.add(new Option(fruits[f] + " " + f, f));
+}
+
+const fv = document.getElementById('filterVariant');
+fv.add(new Option("顯示全部變異", "ALL"));
+variants.forEach(v => {
+    fv.add(new Option(v, v));
+});
         const fs = document.getElementById('fruitSelect');
         for (let f in fruits) fs.add(new Option(fruits[f] + " " + f, f));
 
@@ -58,18 +80,15 @@
     }
 
     async function loadCloudData() {
-        try {
-            const resp = await fetch(SCRIPT_URL);
-            const data = await resp.json();
-            const tbody = document.getElementById('cloudBody');
-            tbody.innerHTML = '';
-            data.reverse().forEach(row => {
-                tbody.innerHTML += `<tr><td>${row[1]}</td><td>${fruits[row[2]] || ''} ${row[2]}</td><td>${row[3]}</td></tr>`;
-            });
-            document.getElementById('status').innerText = "✅ 雲端連線正常";
-        } catch (e) {
-            document.getElementById('status').innerText = "❌ 連線失敗，請檢查網址";
-        }
+    try {
+        const resp = await fetch(SCRIPT_URL);
+        allCloudData = await resp.json(); // 確保資料存進 allCloudData
+        renderTable(); // <--- 關鍵！這行會去觸發畫表格的動作
+        document.getElementById('status').innerText = "✅ 雲端同步成功";
+    } catch (e) {
+        document.getElementById('status').innerText = "❌ 連線失敗";
+    }
+}
     }
 
     async function uploadData() {
@@ -88,6 +107,33 @@
     }
 
     init();
+
+function renderTable() {
+    const filterF = document.getElementById('filterFruit').value;
+    const filterV = document.getElementById('filterVariant').value;
+    const tbody = document.getElementById('cloudBody');
+    tbody.innerHTML = '';
+
+    // 篩選邏輯
+    const filtered = allCloudData.filter(row => {
+        const matchFruit = (filterF === "ALL" || row[2] === filterF);
+        const matchVariant = (filterV === "ALL" || row[3].includes(filterV));
+        return matchFruit && matchVariant;
+    }).reverse();
+
+    filtered.forEach(row => {
+        const tr = document.createElement('tr');
+        // row[3] 是變異字串，用逗號拆開變成標籤
+        const tags = row[3].split(', ').map(t => `<span class="tag">${t}</span>`).join('');
+        tr.innerHTML = `
+            <td>${row[1]}</td>
+            <td><strong>${fruits[row[2]] || ''} ${row[2]}</strong></td>
+            <td>${tags}</td>
+        `;
+        tbody.appendChild(tr);
+    });
+}
 </script>
 </body>
 </html>
+
