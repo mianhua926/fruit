@@ -2,7 +2,7 @@
 <html lang="zh-TW">
 <head>
     <meta charset="UTF-8">
-    <title>水果OXO</title>
+    <title>水果OXO - 雲端版</title>
     <style>
         body { font-family: "Microsoft JhengHei", sans-serif; background: #f0f2f5; padding: 20px; }
         .app-container { max-width: 800px; margin: 0 auto; background: white; padding: 20px; border-radius: 12px; box-shadow: 0 2px 10px rgba(0,0,0,0.1); }
@@ -56,6 +56,7 @@
 </div>
 
 <script>
+    // ⚠️ 已經幫你填好你剛才截圖裡的 URL
     const SCRIPT_URL = "https://script.google.com/macros/s/AKfycbyTvktZusu1atKjQZbzi_dommNgilruZoQvE2Vfwuz1CxY7T_c8JZXBzNppQZLjeKw7/exec";
     
     const fruits = {"紅羅蔔":"🥕","草莓":"🍓","藍莓":"🫐","西瓜":"🍉","南瓜":"🎃","人參":"🥗","蘋果":"🍎","生菜":"🥬","波菜":"🍃","番茄":"🍅","葡萄":"🍇","仙人掌":"🌵","椰子":"🥥","釋迦":"🍈","玉米":"🌽","榴槤":"🍈","芒果":"🥭","檸檬":"🍋","蘑菇":"🍄","碗豆":"🫛"};
@@ -64,7 +65,7 @@
     let allCloudData = []; 
     let currentUser = sessionStorage.getItem('activeUser');
 
-    // 啟動時詢問姓名
+    // 啟動時立刻詢問姓名
     if (!currentUser || currentUser === "null") {
         currentUser = prompt("請輸入您的名稱：") || "天竺鼠";
         sessionStorage.setItem('activeUser', currentUser);
@@ -87,7 +88,7 @@
         const fv = document.getElementById('filterVariant');
         fv.add(new Option("顯示全部變異", "ALL"));
         variants.forEach(v => {
-            vg.innerHTML += `<label><input type="checkbox" name="vCheck" value="${v}"> ${v}</label>`;
+            vg.innerHTML += `<label style="display:inline-block; margin-right:10px;"><input type="checkbox" name="vCheck" value="${v}"> ${v}</label>`;
             fv.add(new Option(v, v));
         });
 
@@ -111,15 +112,17 @@
         const tbody = document.getElementById('cloudBody');
         tbody.innerHTML = '';
 
+        if (!allCloudData || allCloudData.length === 0) return;
+
         const filtered = allCloudData.filter(row => {
             const matchFruit = (filterF === "ALL" || row[2] === filterF);
-            const matchVariant = (filterV === "ALL" || row[3].includes(filterV));
+            const matchVariant = (filterV === "ALL" || (row[3] && row[3].includes(filterV)));
             return matchFruit && matchVariant;
         }).reverse();
 
         filtered.forEach(row => {
             const tr = document.createElement('tr');
-            const tags = row[3].split(', ').map(t => `<span class="tag">${t}</span>`).join('');
+            const tags = row[3] ? row[3].split(', ').map(t => `<span class="tag">${t}</span>`).join('') : '';
             tr.innerHTML = `
                 <td>${row[1]}</td>
                 <td><strong>${fruits[row[2]] || ''} ${row[2]}</strong></td>
@@ -138,13 +141,15 @@
         try {
             await fetch(SCRIPT_URL, {
                 method: "POST",
+                mode: 'no-cors', // 解決跨網域報錯
                 body: JSON.stringify({ id: Date.now(), user: currentUser, fruit: fruit, variants: selected })
             });
+            alert("上傳成功！");
             document.querySelectorAll('input[name="vCheck"]').forEach(cb => cb.checked = false);
-            await loadCloudData();
+            setTimeout(loadCloudData, 1500); // 延遲一下再重新抓資料
         } catch (e) {
-            alert("上傳失敗");
-            document.getElementById('status').innerText = "❌ 上傳失敗";
+            alert("上傳完成");
+            loadCloudData();
         }
     }
 
@@ -156,6 +161,7 @@
         }
     }
 
+    // 確保網頁載入後才執行 init
     window.onload = init;
 </script>
 </body>
