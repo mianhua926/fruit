@@ -2,207 +2,92 @@
 <html lang="zh-TW">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>水果管理</title>
+    <title>水果OXO</title>
     <style>
-        :root { --primary: #2c3e50; --accent: #3498db; --success: #27ae60; --danger: #e74c3c; }
-        body { font-family: "Microsoft JhengHei", sans-serif; background: #f0f2f5; margin: 0; padding: 20px; }
-        .app-container { max-width: 900px; margin: 0 auto; background: white; padding: 30px; border-radius: 12px; box-shadow: 0 4px 20px rgba(0,0,0,0.08); }
-        
-        /* 登入視窗 */
-        #loginOverlay { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.8); display: flex; justify-content: center; align-items: center; z-index: 1000; }
-        .login-box { background: white; padding: 40px; border-radius: 12px; text-align: center; }
-        input[type="text"] { padding: 12px; width: 250px; border: 1px solid #ddd; border-radius: 6px; font-size: 16px; margin-bottom: 15px; }
-
-        /* 主介面 */
-        .user-info { display: flex; justify-content: space-between; align-items: center; background: #ecf0f1; padding: 10px 20px; border-radius: 8px; margin-bottom: 20px; }
-        .section { margin-bottom: 25px; border-bottom: 1px solid #eee; padding-bottom: 20px; }
-        label { font-weight: bold; display: block; margin-bottom: 8px; color: #555; }
-        select, button.main-btn { width: 100%; padding: 12px; border-radius: 6px; font-size: 16px; margin-top: 5px; }
-        button.main-btn { background: var(--success); color: white; border: none; font-weight: bold; cursor: pointer; }
-        
+        /* 保留你之前的樣式並優化 */
+        body { font-family: "Microsoft JhengHei", sans-serif; background: #f0f2f5; padding: 20px; }
+        .app-container { max-width: 800px; margin: 0 auto; background: white; padding: 20px; border-radius: 12px; }
+        .tag { background: #e1f5fe; color: #01579b; padding: 2px 8px; border-radius: 4px; margin-right: 4px; font-size: 12px; }
         .variant-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(100px, 1fr)); gap: 10px; padding: 10px; border: 1px solid #ddd; border-radius: 6px; }
-        .variant-item { font-size: 14px; display: flex; align-items: center; gap: 5px; cursor: pointer;}
-
-        /* 篩選區域 */
-        .filter-bar { background: #f8f9fa; padding: 15px; border-radius: 8px; display: grid; grid-template-columns: 1fr 1fr; gap: 15px; margin-top: 15px; border: 1px solid #e9ecef; }
-        .filter-bar label { font-size: 13px; color: #7f8c8d; }
-
-        table { width: 100%; border-collapse: collapse; margin-top: 15px; }
-        th, td { padding: 12px; border: 1px solid #eee; text-align: left; }
-        th { background: #f1f3f5; color: #444; }
-        .tag { background: #e1f5fe; color: #01579b; padding: 2px 8px; border-radius: 4px; font-size: 12px; margin-right: 4px; display: inline-block; margin-bottom: 2px; }
-        .logout-btn { background: #95a5a6; color: white; border: none; padding: 5px 10px; border-radius: 4px; cursor: pointer; }
+        select, button { width: 100%; padding: 10px; margin-top: 10px; border-radius: 6px; }
+        table { width: 100%; border-collapse: collapse; margin-top: 20px; }
+        th, td { border: 1px solid #eee; padding: 10px; text-align: left; }
     </style>
 </head>
 <body>
 
-<div id="loginOverlay">
-    <div class="login-box">
-        <h2>歡迎光臨oxo</h2>
-        <p>請輸入您的名稱以開始紀錄：</p>
-        <input type="text" id="userNameInput" placeholder="例如：天竺鼠">
-        <br>
-        <button class="main-btn" onclick="login()">進入系統</button>
-    </div>
-</div>
-
 <div class="app-container">
-    <div class="user-info">
-        <span>當前使用者：<strong id="currentUserDisplay">無</strong></span>
-        <button class="logout-btn" onclick="logout()">切換使用者</button>
-    </div>
+    <h2 id="userTitle">雲端同步後台</h2>
+    <div id="status">正在連線雲端資料庫...</div>
+    
+    <label>1. 選擇水果</label>
+    <select id="fruitSelect"></select>
 
-    <div class="section">
-        <label>🍎 1. 新增紀錄：選擇水果</label>
-        <select id="fruitSelect"></select>
-        
-        <label style="margin-top: 15px;">🧬 2. 勾選變異項目</label>
-        <div id="variantGrid" class="variant-grid"></div>
-        
-        <button class="main-btn" style="margin-top: 20px;" onclick="addEntry()">確認加入紀錄</button>
-    </div>
+    <label style="display:block; margin-top:15px;">2. 勾選變異</label>
+    <div id="variantGrid" class="variant-grid"></div>
 
-    <div class="section">
-        <h3>📋 <span id="listTitle">我的</span> 紀錄清單</h3>
-        
-        <div class="filter-bar">
-            <div>
-                <label>按水果過濾：</label>
-                <select id="filterFruit" onchange="renderTable()">
-                    <option value="ALL">全部水果</option>
-                </select>
-            </div>
-            <div>
-                <label>按變異過濾：</label>
-                <select id="filterVariant" onchange="renderTable()">
-                    <option value="ALL">全部變異</option>
-                </select>
-            </div>
-        </div>
+    <button onclick="uploadData()" style="background:#27ae60; color:white; border:none; cursor:pointer;">上傳紀錄到雲端</button>
 
-        <table id="dataTable">
-            <thead>
-                <tr>
-                    <th>水果</th>
-                    <th>變異狀態</th>
-                    <th>操作</th>
-                </tr>
-            </thead>
-            <tbody id="dataBody"></tbody>
-        </table>
-    </div>
+    <hr>
+    <h3>📋 全域同步清單</h3>
+    <table id="cloudTable">
+        <thead><tr><th>使用者</th><th>水果</th><th>變異狀態</th></tr></thead>
+        <tbody id="cloudBody"></tbody>
+    </table>
 </div>
 
 <script>
-    const fruits = ["紅羅蔔", "草莓", "藍莓", "西瓜", "南瓜", "人參", "蘋果", "生菜", "波菜", "番茄", "葡萄", "仙人掌", "椰子", "釋迦", "玉米", "榴槤", "芒果", "檸檬", "蘑菇", "碗豆"];
-    const variants = ["金光", "彩虹", "潮濕", "電擊", "颳風", "沙塵", "月光", "極光", "露珠", "乾燥", "幻象", "無"];
+    // ⚠️ 請在這裡貼上你的 Apps Script 網址
+    const SCRIPT_URL = "https://script.google.com/macros/s/AKfycbyTvktZusu1atKjQZbzi_dommNgilruZoQvE2Vfwuz1CxY7T_c8JZXBzNppQZLjeKw7/exec";
     
-    let currentUser = "";
+    const fruits = {"紅羅蔔":"🥕","草莓":"🍓","藍莓":"🫐","西瓜":"🍉","南瓜":"🎃","人參":"🥗","蘋果":"🍎","生菜":"🥬","波菜":"🍃","番茄":"🍅","葡萄":"🍇","仙人掌":"🌵","椰子":"🥥","釋迦":"🍈","玉米":"🌽","榴槤":"🍈","芒果":"🥭","檸檬":"🍋","蘑菇":"🍄","碗豆":"🫛"};
+    const variants = ["金光", "彩虹", "潮濕", "電擊", "颳風", "沙塵", "月光", "極光", "露珠", "乾燥", "幻象", "無"];
+    const currentUser = sessionStorage.getItem('activeUser') || prompt("請輸入您的名稱") || "天竺鼠";
+    sessionStorage.setItem('activeUser', currentUser);
+    document.getElementById('userTitle').innerText = "你好，" + currentUser;
 
     function init() {
         const fs = document.getElementById('fruitSelect');
-        const ff = document.getElementById('filterFruit');
-        fruits.forEach(f => {
-            fs.add(new Option(f, f));
-            ff.add(new Option(f, f));
-        });
+        for (let f in fruits) fs.add(new Option(fruits[f] + " " + f, f));
 
         const vg = document.getElementById('variantGrid');
-        const fv = document.getElementById('filterVariant');
         variants.forEach(v => {
-            vg.innerHTML += `<label class="variant-item"><input type="checkbox" name="vCheck" value="${v}"> ${v}</label>`;
-            fv.add(new Option(v, v));
+            vg.innerHTML += `<label><input type="checkbox" name="vCheck" value="${v}"> ${v}</label>`;
         });
+        loadCloudData();
+    }
 
-        const savedUser = sessionStorage.getItem('activeUser');
-        if (savedUser) {
-            currentUser = savedUser;
-            showDashboard();
+    async function loadCloudData() {
+        try {
+            const resp = await fetch(SCRIPT_URL);
+            const data = await resp.json();
+            const tbody = document.getElementById('cloudBody');
+            tbody.innerHTML = '';
+            data.reverse().forEach(row => {
+                tbody.innerHTML += `<tr><td>${row[1]}</td><td>${fruits[row[2]] || ''} ${row[2]}</td><td>${row[3]}</td></tr>`;
+            });
+            document.getElementById('status').innerText = "✅ 雲端連線正常";
+        } catch (e) {
+            document.getElementById('status').innerText = "❌ 連線失敗，請檢查網址";
         }
     }
 
-    function login() {
-        const name = document.getElementById('userNameInput').value.trim();
-        if (!name) return alert("請輸入名稱！");
-        currentUser = name;
-        sessionStorage.setItem('activeUser', name);
-        showDashboard();
-    }
-
-    function logout() {
-        sessionStorage.removeItem('activeUser');
-        location.reload();
-    }
-
-    function showDashboard() {
-        document.getElementById('loginOverlay').style.display = 'none';
-        document.getElementById('currentUserDisplay').innerText = currentUser;
-        document.getElementById('listTitle').innerText = currentUser + " 的";
-        renderTable();
-    }
-
-    function addEntry() {
+    async function uploadData() {
         const fruit = document.getElementById('fruitSelect').value;
         const selected = Array.from(document.querySelectorAll('input[name="vCheck"]:checked')).map(cb => cb.value);
-        
-        if (selected.length === 0) return alert("請至少勾選一個變異項目");
+        if (selected.length === 0) return alert("請勾選變異");
 
-        let allData = JSON.parse(localStorage.getItem('multiUserFruitData')) || {};
-        if (!allData[currentUser]) allData[currentUser] = [];
-
-        allData[currentUser].push({
-            id: Date.now(),
-            fruit: fruit,
-            variants: selected
+        document.getElementById('status').innerText = "🚀 上傳中...";
+        await fetch(SCRIPT_URL, {
+            method: "POST",
+            body: JSON.stringify({ id: Date.now(), user: currentUser, fruit: fruit, variants: selected })
         });
-
-        localStorage.setItem('multiUserFruitData', JSON.stringify(allData));
+        
         document.querySelectorAll('input[name="vCheck"]').forEach(cb => cb.checked = false);
-        renderTable();
-    }
-
-    // 核心篩選與渲染邏輯
-    function renderTable() {
-        const allData = JSON.parse(localStorage.getItem('multiUserFruitData')) || {};
-        let userRecords = allData[currentUser] || [];
-        
-        const filterF = document.getElementById('filterFruit').value;
-        const filterV = document.getElementById('filterVariant').value;
-
-        // 執行篩選
-        if (filterF !== "ALL") {
-            userRecords = userRecords.filter(r => r.fruit === filterF);
-        }
-        if (filterV !== "ALL") {
-            userRecords = userRecords.filter(r => r.variants.includes(filterV));
-        }
-
-        const tbody = document.getElementById('dataBody');
-        tbody.innerHTML = '';
-
-        userRecords.forEach(item => {
-            const tr = document.createElement('tr');
-            const tags = item.variants.map(v => `<span class="tag">${v}</span>`).join('');
-            tr.innerHTML = `
-                <td><strong>${item.fruit}</strong></td>
-                <td>${tags}</td>
-                <td><button onclick="deleteEntry(${item.id})" style="color:var(--danger); border:none; background:none; cursor:pointer; font-weight:bold;">刪除</button></td>
-            `;
-            tbody.appendChild(tr);
-        });
-    }
-
-    function deleteEntry(id) {
-        if(!confirm("確定要刪除這筆紀錄嗎？")) return;
-        let allData = JSON.parse(localStorage.getItem('multiUserFruitData'));
-        allData[currentUser] = allData[currentUser].filter(item => item.id !== id);
-        localStorage.setItem('multiUserFruitData', JSON.stringify(allData));
-        renderTable();
+        loadCloudData();
     }
 
     init();
 </script>
 </body>
 </html>
-
