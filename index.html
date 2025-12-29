@@ -17,6 +17,13 @@
 <body>
 
 <div class="app-container">
+    <div class="app-container">
+    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px;">
+        <h2 id="userTitle" style="margin: 0;">載入中...</h2>
+        <button onclick="changeUser()" style="width: auto; padding: 5px 12px; background: #95a5a6; color: white; font-size: 13px; margin: 0; border: none; border-radius: 4px; cursor: pointer;">切換用戶</button>
+    </div>
+    
+    </div>
     <h2 id="userTitle">雲端同步後台</h2>
     <div id="status">正在連線雲端資料庫...</div>
     
@@ -49,12 +56,48 @@
 <script>
     // ⚠️ 請在這裡貼上你的 Apps Script 網址
     const SCRIPT_URL = "https://script.google.com/macros/s/AKfycbyTvktZusu1atKjQZbzi_dommNgilruZoQvE2Vfwuz1CxY7T_c8JZXBzNppQZLjeKw7/exec";
-    
+    <script>
+    // --- 原有的網址與資料定義 ---
+    const SCRIPT_URL = "你的網址";
+    const fruits = { ... }; 
+    const variants = [ ... ];
+
+    // --- 【這是要加的地方：用戶檢查邏輯】 ---
+    let currentUser = sessionStorage.getItem('activeUser');
+
+    // 如果沒有名字，就自動顯示「匿名」，或者你可以保留 prompt
+    if (!currentUser || currentUser === "null") {
+        currentUser = prompt("請輸入您的名稱：") || "匿名";
+        sessionStorage.setItem('activeUser', currentUser);
+    }
+
+    // 當網頁載入完成後，把名字顯示在標題
+    document.addEventListener('DOMContentLoaded', () => {
+        const titleEl = document.getElementById('userTitle');
+        if (titleEl) titleEl.innerText = "你好，" + currentUser;
+    });
+
+    // --- 其餘原有的 function (init, loadCloudData...) ---
+</script>
     const fruits = {"紅羅蔔":"🥕","草莓":"🍓","藍莓":"🫐","西瓜":"🍉","南瓜":"🎃","人參":"🥗","蘋果":"🍎","生菜":"🥬","波菜":"🍃","番茄":"🍅","葡萄":"🍇","仙人掌":"🌵","椰子":"🥥","釋迦":"🍈","玉米":"🌽","榴槤":"🍈","芒果":"🥭","檸檬":"🍋","蘑菇":"🍄","碗豆":"🫛"};
     const variants = ["金光", "彩虹", "潮濕", "電擊", "颳風", "沙塵", "月光", "極光", "露珠", "乾燥", "幻象", "無"];
-    const currentUser = sessionStorage.getItem('activeUser') || prompt("請輸入您的名稱") || "天竺鼠";
-    sessionStorage.setItem('activeUser', currentUser);
-    document.getElementById('userTitle').innerText = "你好，" + currentUser;
+    // 1. 先宣告變數
+    let currentUser = sessionStorage.getItem('activeUser');
+    
+    // 2. 如果沒存過名字，就一直問到有名字為止
+    if (!currentUser || currentUser === "null") {
+        currentUser = prompt("請輸入您的名稱：");
+        if (!currentUser) {
+            currentUser = "天竺鼠"; // 萬一真的沒輸入的保底
+        }
+        sessionStorage.setItem('activeUser', currentUser);
+    }
+
+// 3. 更新介面顯示
+document.addEventListener('DOMContentLoaded', () => {
+    const titleEl = document.getElementById('userTitle');
+    if (titleEl) titleEl.innerText = "你好，" + currentUser;
+});
 
     function init() {
         // 在 init() 裡面加入這段
@@ -136,4 +179,5 @@ function renderTable() {
 </script>
 </body>
 </html>
+
 
