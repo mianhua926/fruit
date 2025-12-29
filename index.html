@@ -50,13 +50,12 @@
     </div>
 
     <table id="cloudTable">
-        <thead><tr><th>使用者</th><th>水果</th><th>變異狀態</th></tr></thead>
+        <thead><tr><th>使用者</th><th>水果</th><th>變異狀態</th><th>刪除</th></tr></thead>
         <tbody id="cloudBody"></tbody>
     </table>
 </div>
 
 <script>
-    // ⚠️ 已經幫你填好你剛才截圖裡的 URL
     const SCRIPT_URL = "https://script.google.com/macros/s/AKfycbyTvktZusu1atKjQZbzi_dommNgilruZoQvE2Vfwuz1CxY7T_c8JZXBzNppQZLjeKw7/exec";
     
     const fruits = {"紅羅蔔":"🥕","草莓":"🍓","藍莓":"🫐","西瓜":"🍉","南瓜":"🎃","人參":"🥗","蘋果":"🍎","生菜":"🥬","波菜":"🍃","番茄":"🍅","葡萄":"🍇","仙人掌":"🌵","椰子":"🥥","釋迦":"🍈","玉米":"🌽","榴槤":"🍈","芒果":"🥭","檸檬":"🍋","蘑菇":"🍄","碗豆":"🫛"};
@@ -123,11 +122,14 @@
         filtered.forEach(row => {
             const tr = document.createElement('tr');
             const tags = row[3] ? row[3].split(', ').map(t => `<span class="tag">${t}</span>`).join('') : '';
-            tr.innerHTML = `
-                <td>${row[1]}</td>
-                <td><strong>${fruits[row[2]] || ''} ${row[2]}</strong></td>
-                <td>${tags}</td>
-            `;
+           tr.innerHTML = `
+            <td>${row[1]}</td>
+            <td><strong>${fruits[row[2]] || ''} ${row[2]}</strong></td>
+            <td>${tags}</td>
+            <td>
+                <button onclick="deleteData('${row[0]}')" style="width:auto; padding:5px 10px; background:#e74c3c; color:white; border:none; margin:0; cursor:pointer; font-size:12px;">刪除</button>
+            </td>
+        `;
             tbody.appendChild(tr);
         });
     }
@@ -163,6 +165,24 @@
 
     // 確保網頁載入後才執行 init
     window.onload = init;
+    async function deleteData(id) {
+    if (!confirm("確定要刪除這筆紀錄嗎？")) return;
+
+    document.getElementById('status').innerText = "🗑️ 正在刪除...";
+    try {
+        await fetch(SCRIPT_URL, {
+            method: "POST",
+            mode: 'no-cors',
+            body: JSON.stringify({ action: 'delete', id: id })
+        });
+        alert("刪除指令已發送！");
+        // 延遲一下重新整理，確保雲端已完成刪除動作
+        setTimeout(loadCloudData, 1500);
+    } catch (e) {
+        alert("刪除失敗");
+    }
+}
 </script>
 </body>
 </html>
+
